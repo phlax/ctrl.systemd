@@ -1,0 +1,25 @@
+# https://travis-ci.org/#!/phlax/ctrl.systemd
+dist: trusty
+language: python
+python:
+  - "3.5"
+
+before_install:
+  - sudo apt-get install -yy -q --no-install-recommends build-essential libsystemd-daemon-dev libsystemd-login-dev libsystemd-journal-dev python3-dev
+
+install:
+  - git clone https://github.com/phlax/ctrl.core
+  - cd ctrl.core && pip install -e . && cd ..
+
+  - git clone https://github.com/phlax/ctrl.command
+  - cd ctrl.command && pip install -e . && cd ..
+
+  - git clone https://github.com/phlax/ctrl.config
+  - cd ctrl.config && pip install -e . && cd ..
+
+  - pip install -e .
+  - pip install ctrl.systemd[test]
+
+script:
+
+  - flake8 .
