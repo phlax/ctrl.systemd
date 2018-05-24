@@ -193,7 +193,7 @@ class SystemdConfiguration(object):
             f.write(self.config.get('controller', 'idle-timeout'))
 
     def setup_zmq_pipes(self):
-        if self.config.get('controller', 'zmq-listen'):
+        if self.config.has_option('controller', 'zmq-listen'):
             listen_socket = self.config.get('controller', 'zmq-listen')
             upstream_socket = '/var/run/sockets/zmq-rpc.sock'
             if listen_socket.startswith('ipc:///'):
@@ -209,7 +209,7 @@ class SystemdConfiguration(object):
                 wait_command='/usr/local/bin/wait-for-zmq',
                 stop_command='/usr/local/bin/stop-zmq',
                 prefix='zmq').update_config()
-        if self.config.get('controller', 'zmq-publish'):
+        if self.config.has_option('controller', 'zmq-publish'):
             socket, subscription = self.config.get(
                 'controller', 'zmq-publish').split(' ')
             print('Publishing events to zmq subscriber: %s'
