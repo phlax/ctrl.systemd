@@ -154,7 +154,7 @@ class SystemdProxyServiceConfiguration(SystemdServiceConfiguration):
             'PrivateNetwork',
             ('yes'
              if (self.listen_socket.startswith('/')
-                 or self.upstream_socket.startswith('/'))
+                 and self.upstream_socket.startswith('/'))
              else 'no'))
         service_config.write(
             open('/etc/systemd/system/%s--proxy.service'
