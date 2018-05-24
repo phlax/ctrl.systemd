@@ -1,6 +1,10 @@
 
 from configparser import RawConfigParser
 
+from zope import component
+
+from ctrl.config.interfaces import ICtrlConfig
+
 
 class M(dict):
 
@@ -45,6 +49,10 @@ class SystemdServiceConfiguration(object):
         self.wait_command = kwargs.get('wait_command', self.wait_command)
 
     @property
+    def config(self):
+        return component.getUtility(ICtrlConfig).config
+
+    @property
     def ctrl_name(self):
         return (
             '%s-%s' % (self.prefix, self.name)
@@ -63,8 +71,14 @@ class SystemdServiceConfiguration(object):
         upstream_config.optionxform = str
         upstream_config.add_section('Unit')
         upstream_config.set('Unit', 'Description', self.description)
-        upstream_config.set('Unit', 'Requires', 'idle.timer')
-        upstream_config.set('Unit', 'After', 'idle.timer')
+        setup_timer = (
+            self.config.has_option('controller', 'idle-timeout')
+            and not (
+                self.config.get('controller', 'idle-timeout')
+                == 'infinity'))
+        if setup_timer:
+            upstream_config.set('Unit', 'Requires', 'idle.timer')
+            upstream_config.set('Unit', 'After', 'idle.timer')
         upstream_config.add_section('Service')
         upstream_config.set(
             'Service',
