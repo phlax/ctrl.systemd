@@ -2,11 +2,11 @@ from zope import interface
 
 import dbussy
 
-from .interfaces import ISysctl
+from ctrl.core.interfaces import ISystemctl
 
 
-@interface.implementer(ISysctl)
-class SystemdSysctl(object):
+@interface.implementer(ISystemctl)
+class SystemdSystemctl(object):
 
     async def await_send_reply(self, method, *args):
         conn = await self.get_connection()
@@ -34,7 +34,7 @@ class SystemdSysctl(object):
     async def stop(self, service):
         # whod have thought itd be so damn difficult
         # to stop a systemd unit
-        print("Sysctl stopping %s" % service)
+        print("Systemctl stopping %s" % service)
         # busctl call org.freedesktop.systemd1 /org/freedesktop/systemd1
         # org.freedesktop.systemd1.Manager
         # StopUnit ss "controller-translate.service" "replace"

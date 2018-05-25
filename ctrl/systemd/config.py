@@ -5,7 +5,7 @@ from zope import component
 
 import yaml
 
-from ctrl.config.interfaces import ICtrlConfig
+from ctrl.core.interfaces import ICtrlConfig
 
 from .service import (
     SystemdProxyServiceConfiguration,

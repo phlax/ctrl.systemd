@@ -5,8 +5,7 @@ from zope import component
 
 import zmq
 
-from ctrl.core.interfaces import ICtrlApp
-from ctrl.config.interfaces import ICtrlConfig
+from ctrl.core.interfaces import ICtrlApp, ICtrlConfig
 from ctrl.zmq.base import ZMQService
 from .listener import SystemdListener
 

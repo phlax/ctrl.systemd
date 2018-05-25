@@ -1,11 +1,10 @@
 
 from zope import component
 
-from ctrl.config.interfaces import IConfiguration
+from ctrl.core.interfaces import IConfiguration, ISystemctl
 
 from .config import SystemdConfiguration
-from .interfaces import ISysctl
-from .sysctl import SystemdSysctl
+from .systemctl import SystemdSystemctl
 
 
 class CtrlSystemdExtension(object):
@@ -17,5 +16,5 @@ class CtrlSystemdExtension(object):
             name='systemd')
 
         component.provideUtility(
-            SystemdSysctl(),
-            provides=ISysctl)
+            SystemdSystemctl(),
+            provides=ISystemctl)

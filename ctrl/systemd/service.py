@@ -3,7 +3,7 @@ from configparser import RawConfigParser
 
 from zope import component
 
-from ctrl.config.interfaces import ICtrlConfig
+from ctrl.core.interfaces import ICtrlConfig
 
 
 class M(dict):
