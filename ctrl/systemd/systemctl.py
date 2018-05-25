@@ -8,7 +8,11 @@ from ctrl.core.interfaces import ISystemctl
 @interface.implementer(ISystemctl)
 class SystemdSystemctl(object):
 
-    async def await_send_reply(self, method, *args):
+    async def get_connection(self):
+        return await dbussy.Connection.bus_get_async(
+            dbussy.DBUS.BUS_SYSTEM, private=False)
+
+    async def send_await_reply(self, method, *args):
         conn = await self.get_connection()
         message = dbussy.Message.new_method_call(
             destination='org.freedesktop.systemd1',
@@ -18,18 +22,20 @@ class SystemdSystemctl(object):
         message.append_objects(*args)
         return await conn.send_await_reply(message)
 
-    async def get_connection(self):
-        return await dbussy.Connection.bus_get_async(
-            dbussy.DBUS.BUS_SYSTEM, private=False)
-
     async def daemon_reload(self):
         print("Reloading daemons")
         # busctl call org.freedesktop.systemd1 /org/freedesktop/systemd1
         # org.freedesktop.systemd1.Manager Reload
-        return await self.send_await_reply('Reload')
+        return await self.send_await_reply('Reload', '')
 
     async def start(self, service):
-        pass
+        reply = await self.send_await_reply(
+            'StartUnit',
+            'ss',
+            service,
+            'replace')
+        print(repr(reply.all_objects))
+        return 'Service (%s) started' % service
 
     async def stop(self, service):
         # whod have thought itd be so damn difficult
@@ -41,7 +47,7 @@ class SystemdSystemctl(object):
         reply = await self.send_await_reply(
             'StopUnit',
             'ss',
-            'controller-%s.service' % service,
+            service,
             'replace')
         print(repr(reply.all_objects))
         return 'Service (%s) stopped' % service
