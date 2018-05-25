@@ -195,7 +195,7 @@ class SystemdConfiguration(object):
     def setup_zmq_pipes(self):
         if self.config.has_option('controller', 'zmq-listen'):
             listen_socket = self.config.get('controller', 'zmq-listen')
-            upstream_socket = '/var/run/sockets/zmq-rpc.sock'
+            upstream_socket = '/sockets/zmq-rpc.sock'
             if listen_socket.startswith('ipc:///'):
                 listen_socket = listen_socket[6:]
             print('Configuring zmq rpc listener on: %s'
