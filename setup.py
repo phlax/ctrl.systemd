@@ -11,6 +11,7 @@ install_requires = [
     'ctrl.config',
     'ctrl.core',
     'ctrl.command',
+    'dbussy',
     'pyyaml',
     'systemd-python']
 extras_require = {}
