@@ -5,7 +5,7 @@ from zope import component
 
 import zmq
 
-from ctrl.core.interfaces import ICtrlApp, ICtrlConfig
+from ctrl.core.interfaces import ICtrlConfig
 from ctrl.zmq.base import ZMQService
 from .listener import SystemdListener
 
@@ -51,9 +51,6 @@ class SystemdZMQPublisher(ZMQService):
         SystemdListener(self.emit_systemd, self.filter_systemd, loop).listen()
 
     async def run(self, subscribe, *args):
-        app = component.getUtility(ICtrlApp)
-        await app.setup(['ctrl.config'])
-
         self.subscription = subscribe
         self.listen_systemd(self.loop)
         asyncio.ensure_future(self.handle())
