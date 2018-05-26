@@ -227,6 +227,21 @@ class SystemdConfiguration(object):
                     ('PYTHONPATH', '/controller/src')),
                 prefix='zmq').update_config()
 
+    def setup_vpn_monitor(self):
+        if 'vpn-monitor' in self.config['controller']:
+            upstream_socket = self.config['controller']['vpn-monitor']
+            print('Configuring vpn monitor on: %s'
+                  % upstream_socket)
+            SystemdServiceConfiguration(
+                'monitor',
+                upstream_socket=upstream_socket,
+                start_command='/usr/local/bin/start-vpn-monitor',
+                stop_command='/usr/local/bin/stop-vpn-monitor',
+                env_vars=(
+                    ('CTRL_MODULES', 'ctrl.vpn'),
+                    ('PYTHONPATH', '/controller/src')),
+                prefix='vpn').update_config()
+
     def create_env_file(self):
         if 'controller' not in self.config:
             return
@@ -242,6 +257,7 @@ class SystemdConfiguration(object):
         self.generate_system_compose_file()
         self.set_timeout_file()
         self.setup_zmq_pipes()
+        self.setup_vpn_monitor()
         for name in self.services:
             self.generate_service_files(name)
             self.generate_compose_file(name)
