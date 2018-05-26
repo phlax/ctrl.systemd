@@ -3,7 +3,7 @@ from configparser import RawConfigParser
 
 from zope import component
 
-from ctrl.core.interfaces import ICtrlConfig
+from ctrl.core.interfaces import ISettings
 
 
 class M(dict):
@@ -50,7 +50,7 @@ class SystemdServiceConfiguration(object):
 
     @property
     def config(self):
-        return component.getUtility(ICtrlConfig).config
+        return component.getUtility(ISettings)
 
     @property
     def ctrl_name(self):
@@ -72,9 +72,9 @@ class SystemdServiceConfiguration(object):
         upstream_config.add_section('Unit')
         upstream_config.set('Unit', 'Description', self.description)
         setup_timer = (
-            self.config.has_option('controller', 'idle-timeout')
+            'idle-timeout' in self.config['controller']
             and not (
-                self.config.get('controller', 'idle-timeout')
+                self.config['controller']['idle-timeout']
                 == 'infinity'))
         if setup_timer:
             upstream_config.set('Unit', 'Requires', 'idle.timer')

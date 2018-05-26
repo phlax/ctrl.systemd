@@ -5,7 +5,7 @@ from zope import component
 
 import yaml
 
-from ctrl.core.interfaces import ICtrlConfig
+from ctrl.core.interfaces import ICtrlConfig, ISettings
 
 from .service import (
     SystemdProxyServiceConfiguration,
@@ -22,35 +22,33 @@ class SystemdConfiguration(object):
     def clients(self):
         sections = [
             s for s
-            in self.config.sections()
+            in self.config
             if s.startswith('client:')]
         for section in sections:
             yield section[7:]
 
     @property
     def config(self):
-        return component.getUtility(ICtrlConfig).config
+        return component.getUtility(ISettings)
 
     @property
     def services(self):
         sections = [
             s for s
-            in self.config.sections()
+            in self.config
             if s.startswith('service:')]
         for section in sections:
             yield section[8:]
 
     @property
     def var_path(self):
-        var_path = self.config.get('controller', 'var_path')
+        var_path = self.config['controller']['var_path']
         if not os.path.exists(var_path):
             os.makedirs(var_path)
         return var_path
 
     def append_touch_files(self, name):
-        idle_files = self.config.get(
-            "service:%s" % name,
-            'idle-files').split('\n')
+        idle_files = self.config['service:%s' % name].getlist('idle-files')
         with open(os.path.join(self.var_path, 'idle-files'), 'a') as f:
             f.write('%s %s' % (name, ' '.join(idle_files)))
 
@@ -101,13 +99,13 @@ class SystemdConfiguration(object):
     def generate_daemon_compose_file(self, config, startup_config):
         daemons = [
             d for d
-            in self.config.get('controller', 'daemons').split('\n')
+            in self.config['controller'].getlist('daemons')
             if d]
         if not daemons:
             return
         extra_services = []
         for daemon in daemons:
-            if not config['services'].get(daemon):
+            if not config['services'][daemon]:
                 print('No config for daemon: %s' % daemon)
                 continue
             startup_config['services'][daemon] = dict(
@@ -154,15 +152,15 @@ class SystemdConfiguration(object):
             default_flow_style=False)
 
     def generate_service_files(self, name):
-        context = self.config.get('controller', 'context')
-        project = self.config.get(
-            'controller', 'name') or os.path.basename(context)
-        listen_socket = self.config.get(
-            "service:%s" % name, 'listen')
-        description = self.config.get(
-            "service:%s" % name, 'description')
-        upstream_socket = self.config.get(
-            "service:%s" % name, 'socket') or ("/sockets/%s.sock" % name)
+        context = self.config['controller']['context']
+        project = (
+            self.config['controller'].get('name')
+            or os.path.basename(context))
+        listen_socket = self.config['service:%s' % name]['listen']
+        description = self.config['service:%s' % name]['description']
+        upstream_socket = (
+            self.config['service:%s' % name].get('socket')
+            or '/sockets/%s.sock' % name)
         service = self.get_service(name)
         services = self.get_services(name)
         SystemdProxyServiceConfiguration(
@@ -176,13 +174,13 @@ class SystemdConfiguration(object):
 
     def get_services(self, name):
         return [
-            ("%s-%s" % (s, name))
+            ('%s-%s' % (s, name))
             for s
-            in self.config.get("service:%s" % name, 'services').split(" ")
+            in self.config['service:%s' % name]['services'].split(" ")
             if s] or [self.get_service(name)]
 
     def get_service(self, name):
-        service = self.config.get("service:%s" % name, 'service')
+        service = self.config['service:%s' % name]['service']
         return (
             "%s-%s" % (service, name)
             if service
@@ -190,11 +188,11 @@ class SystemdConfiguration(object):
 
     def set_timeout_file(self):
         with open(os.path.join(self.var_path, 'idle-timeout'), 'w') as f:
-            f.write(self.config.get('controller', 'idle-timeout'))
+            f.write(self.config['controller']['idle-timeout'])
 
     def setup_zmq_pipes(self):
-        if self.config.has_option('controller', 'zmq-listen'):
-            listen_socket = self.config.get('controller', 'zmq-listen')
+        if 'zmq-listen' in self.config['controller']:
+            listen_socket = self.config['controller']['zmq-listen']
             upstream_socket = '/sockets/zmq-rpc.sock'
             if listen_socket.startswith('ipc:///'):
                 listen_socket = listen_socket[6:]
@@ -209,9 +207,9 @@ class SystemdConfiguration(object):
                 wait_command='/usr/local/bin/wait-for-zmq',
                 stop_command='/usr/local/bin/stop-zmq',
                 prefix='zmq').update_config()
-        if self.config.has_option('controller', 'zmq-publish'):
-            socket, subscription = self.config.get(
-                'controller', 'zmq-publish').split(' ')
+        if 'zmq-publish' in self.config['controller']:
+            socket, subscription = (
+                self.config['controller']['zmq-publish'].split(' '))
             print('Publishing events to zmq subscriber: %s'
                   % socket)
             SystemdServiceConfiguration(
@@ -224,12 +222,12 @@ class SystemdConfiguration(object):
                 prefix='zmq').update_config()
 
     def create_env_file(self):
-        if not self.config.has_section('controller'):
+        if 'controller' not in self.config:
             return
         print('Creating env file')
         env = (
             'COMPOSE_CONTEXT=%s\nDOCKER_HOST=%s'
-            % (self.config.get('controller', 'context'),
+            % (self.config['controller']['context'],
                'unix:///fat/docker.sock'))
         open('/etc/controller.env', 'w').write(env)
 
