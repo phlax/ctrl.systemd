@@ -36,6 +36,7 @@ class SystemdServiceConfiguration(object):
 
     def __init__(self, name, **kwargs):
         self.name = name
+        self._env_vars = kwargs.get('env_vars', {})
         self.upstream_socket = kwargs.get('upstream_socket')
         self.prefix = kwargs.get('prefix', 'controller')
         self.project = kwargs.get('project', 'apps')
@@ -61,6 +62,8 @@ class SystemdServiceConfiguration(object):
 
     @property
     def env_vars(self):
+        for k, v in self._env_vars:
+            yield '%s=%s' % (k, v)
         with open('/var/lib/controller/env') as f:
             for line in f.readlines():
                 if line.strip():

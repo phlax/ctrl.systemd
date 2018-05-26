@@ -206,6 +206,9 @@ class SystemdConfiguration(object):
                 start_command='/usr/local/bin/start-zmq',
                 wait_command='/usr/local/bin/wait-for-zmq',
                 stop_command='/usr/local/bin/stop-zmq',
+                env_vars=(
+                    ('CTRL_MODULES', 'ctrl.zmq'),
+                    ('PYTHONPATH', '/controller/src')),
                 prefix='zmq').update_config()
         if 'zmq-publish' in self.config['controller']:
             socket, subscription = (
@@ -219,6 +222,9 @@ class SystemdConfiguration(object):
                 start_command='/usr/local/bin/start-zmq',
                 wait_command='/usr/local/bin/wait-for-zmq',
                 stop_command='/usr/local/bin/stop-zmq',
+                env_vars=(
+                    ('CTRL_MODULES', 'ctrl.zmq'),
+                    ('PYTHONPATH', '/controller/src')),
                 prefix='zmq').update_config()
 
     def create_env_file(self):
