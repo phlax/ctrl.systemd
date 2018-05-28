@@ -165,7 +165,7 @@ class SystemdProxyServiceConfiguration(SystemdServiceConfiguration):
             'Service',
             'ExecStart',
             ('/usr/local/bin/start-proxy %s %s'
-             % (self.ctrl_name, self.upstream_socket)))
+             % (self.name, self.upstream_socket)))
         service_config.set('Service', 'PrivateTmp', 'yes')
         service_config.set(
             'Service',
