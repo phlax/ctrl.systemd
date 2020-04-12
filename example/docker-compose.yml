@@ -1,0 +1,37 @@
+#
+
+version: "2.1"
+services:
+  systemd-system:
+    image: phlax/systemd
+    tty: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - systemd:/etc/systemd/system
+      - sockets:/var/run/dbus/
+      - ./manage-units.pkla:/etc/polkit-1/localauthority/50-local.d/manage-units.pkla
+      - ./reload-daemon.pkla:/etc/polkit-1/localauthority/50-local.d/reload-daemon.pkla
+    tmpfs:
+    - /run
+    - /run/lock
+    - /tmp
+
+  systemd-client:
+    image: ctrl-systemd
+    environment:
+      CTRL_MODULES: ctrl.core,ctrl.command,ctrl.systemd
+    volumes:
+      - sockets:/var/run/dbus
+      - systemd:/var/lib/systemd
+      - ./ctrl:/var/lib/ctrl:rw
+
+  systemd-dev-client:
+    extends: systemd-client
+    environment:
+      DEV_EGGS: src/*/
+    volumes:
+      - ..:/app/ctrlsys/src/ctrl.systemd
+
+volumes:
+  systemd:
+  sockets:

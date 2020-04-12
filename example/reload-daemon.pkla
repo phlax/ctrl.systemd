@@ -1,0 +1,6 @@
+[Allow users to reload daemon]
+Identity=unix-group:system
+Action=org.freedesktop.systemd1.reload-daemon
+ResultActive=yes
+ResultAny=yes
+ResultInactive=yes
