@@ -1,25 +1,52 @@
 # https://travis-ci.org/#!/phlax/ctrl.systemd
-dist: trusty
-language: python
-python:
-  - "3.5"
 
 before_install:
-  - sudo apt-get install -yy -q --no-install-recommends build-essential libsystemd-daemon-dev libsystemd-login-dev libsystemd-journal-dev python3-dev
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
 
 install:
-  - git clone https://github.com/phlax/ctrl.core
-  - cd ctrl.core && pip install -e . && cd ..
-
-  - git clone https://github.com/phlax/ctrl.command
-  - cd ctrl.command && pip install -e . && cd ..
-
-  - git clone https://github.com/phlax/ctrl.config
-  - cd ctrl.config && pip install -e . && cd ..
-
-  - pip install -e .
-  - pip install ctrl.systemd[test]
+  - cat .docker
+  - make image
+  - docker pull phlax/systemd
 
 script:
+  - SYSTEMD_CTRL="docker-compose run systemd-client run_shell ctrl systemd"
+  - cd example
+  - docker-compose up -d systemd-system
 
-  - flake8 .
+  # systemd is up and accessible to both containers, but only running in the first
+  - docker-compose exec systemd-system ls /var/run/dbus | grep system_bus_socket
+  - docker-compose run systemd-client ls -lh /var/run/dbus | grep system_bus_socket
+  - docker-compose run systemd-client ps aux | grep dbus && exit 1 || echo "Great, no dbus running here"
+
+  - $SYSTEMD_CTRL services
+
+  # this probs should not happen here 8/
+  - docker-compose run --entrypoint "/bin/bash -c" systemd-client "chown -R ctrlsys:ctrlsys /var/lib/ctrl"
+
+  - docker-compose run --entrypoint "/bin/bash -c" -v `pwd`/services.json:/tmp/services.json systemd-client "cp -a /tmp/services.json /var/lib/ctrl/services"
+
+  - $SYSTEMD_CTRL services
+  - $SYSTEMD_CTRL configure
+  - $SYSTEMD_CTRL services
+  - $SYSTEMD_CTRL daemon-reload
+  - $SYSTEMD_CTRL services
+  - $SYSTEMD_CTRL enable foo
+  - $SYSTEMD_CTRL services
+  - $SYSTEMD_CTRL start foo
+  - $SYSTEMD_CTRL services
+  - $SYSTEMD_CTRL stop foo
+  - $SYSTEMD_CTRL services
+  - $SYSTEMD_CTRL disable foo
+  - $SYSTEMD_CTRL services
+
+  - # docker-compose run systemd-client echo "$NEWSERVICES" > /var/lib/ctrl/services
+
+  - $SYSTEMD_CTRL configure
+  - $SYSTEMD_CTRL services
+  - $SYSTEMD_CTRL daemon-reload
+  - $SYSTEMD_CTRL services
+
+  - # flake8
