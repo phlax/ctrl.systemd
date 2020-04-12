@@ -1,0 +1,15 @@
+
+export APP_NAME=ctrlsys
+export APP_USERNAME=ctrlsys
+export SYSTEM_PKGS="\
+       libdbus-1-3 \
+       curl \
+       git"
+export BUILD_PKGS="\
+       build-essential \
+       libsystemd-dev \
+       pkg-config \
+       python3-dev"
+export EGGS="\
+       git+https://github.com/phlax/ctrl.systemd#egg=ctrl.systemd"
+export ON_CONTAINER_START="mkdir -p && chown 1000:1000 /var/lib/systemd"
