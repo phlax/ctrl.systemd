@@ -8,9 +8,12 @@ from setuptools import setup
 
 
 install_requires = [
-    'ctrl.config',
-    'ctrl.core',
-    'ctrl.command',
+    ("ctrl.core"
+     "@git+https://github.com/phlax/ctrl.core#egg=ctrl.core"),
+    ("ctrl.config"
+     "@git+https://github.com/phlax/ctrl.config#egg=ctrl.config"),
+    ("ctrl.command"
+     "@git+https://github.com/phlax/ctrl.command#egg=ctrl.command"),
     'dbussy',
     'pyyaml',
     'systemd-python']
@@ -25,7 +28,7 @@ extras_require['test'] = [
 
 setup(
     name='ctrl.systemd',
-    version='0.0.1',
+    version='0.0.2',
     description='ctrl.systemd',
     long_description="ctrl.systemd",
     url='https://github.com/phlax/ctrl.systemd',
